@@ -164,7 +164,7 @@ class QuoteServiceTest {
         q2.setBudgetAmount(new BigDecimal("120.00"));
         q2.setBudgetFlag(BudgetFlag.WITHIN_BUDGET);
 
-        when(quoteRepository.findAll(any(org.springframework.data.jpa.domain.Specification.class), any(org.springframework.data.domain.Sort.class))).thenReturn(Arrays.asList(q1, q2));
+        when(quoteRepository.findAllByOrderByCreatedAtDesc()).thenReturn(Arrays.asList(q1, q2));
 
         List<QuoteResponseDto> result = quoteService.getAllQuotes(null, null, null, null);
 

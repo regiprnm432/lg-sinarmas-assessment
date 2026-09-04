@@ -56,25 +56,28 @@ public class QuoteServiceImpl implements QuoteService {
         String cleanCurrency = (currency != null && !currency.isBlank()) ? currency.trim().toUpperCase() : null;
         String cleanItemCode = (itemCode != null && !itemCode.isBlank()) ? itemCode.trim() : null;
 
-        Specification<PurchaseQuote> spec = (root, query, cb) -> {
-            List<Predicate> predicates = new ArrayList<>();
-            if (cleanSupplier != null) {
-                predicates.add(cb.like(cb.lower(root.get("supplierName")), "%" + cleanSupplier.toLowerCase() + "%"));
-            }
-            if (cleanCurrency != null) {
-                predicates.add(cb.equal(cb.upper(root.get("quoteCurrency")), cleanCurrency));
-            }
-            if (budgetFlag != null) {
-                predicates.add(cb.equal(root.get("budgetFlag"), budgetFlag));
-            }
-            if (cleanItemCode != null) {
-                predicates.add(cb.like(cb.lower(root.get("itemCode")), "%" + cleanItemCode.toLowerCase() + "%"));
-            }
-            return cb.and(predicates.toArray(new Predicate[0]));
-        };
-
-        Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
-        List<PurchaseQuote> quotes = quoteRepository.findAll(spec, sort);
+        List<PurchaseQuote> quotes;
+        if (cleanSupplier == null && cleanCurrency == null && budgetFlag == null && cleanItemCode == null) {
+            quotes = quoteRepository.findAllByOrderByCreatedAtDesc();
+        } else {
+            Specification<PurchaseQuote> spec = (root, query, cb) -> {
+                List<Predicate> predicates = new ArrayList<>();
+                if (cleanSupplier != null) {
+                    predicates.add(cb.like(cb.lower(root.get("supplierName")), "%" + cleanSupplier.toLowerCase() + "%"));
+                }
+                if (cleanCurrency != null) {
+                    predicates.add(cb.equal(cb.upper(root.get("quoteCurrency")), cleanCurrency));
+                }
+                if (budgetFlag != null) {
+                    predicates.add(cb.equal(root.get("budgetFlag"), budgetFlag));
+                }
+                if (cleanItemCode != null) {
+                    predicates.add(cb.like(cb.lower(root.get("itemCode")), "%" + cleanItemCode.toLowerCase() + "%"));
+                }
+                return predicates.isEmpty() ? null : cb.and(predicates.toArray(new Predicate[0]));
+            };
+            quotes = quoteRepository.findAll(spec, Sort.by(Sort.Direction.DESC, "createdAt"));
+        }
         List<QuoteResponseDto> dtos = quotes.stream()
                 .map(QuoteResponseDto::fromEntity)
                 .collect(Collectors.toList());
