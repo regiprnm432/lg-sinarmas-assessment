@@ -1,6 +1,6 @@
 import React from 'react';
 import StatusBadge from './StatusBadge';
-import { Award, Edit3, Trash2, Clock, ArrowRight, DollarSign } from 'lucide-react';
+import { Award, Edit3, Trash2, Clock, DollarSign } from 'lucide-react';
 
 export default function QuoteTable({ quotes, loading, onEdit, onDelete }) {
   const formatNumber = (val, decimals = 2) => {

@@ -22,6 +22,10 @@ public class FxServiceImpl implements FxService {
 
     private static final Logger log = LoggerFactory.getLogger(FxServiceImpl.class);
 
+    public static final int AMOUNT_SCALE = 2;
+    public static final int RATE_SCALE = 6;
+    public static final String DEFAULT_BASE_CURRENCY = "USD";
+
     private final FrankfurterClient frankfurterClient;
     private final FxRateCacheRepository fxRateCacheRepository;
 
@@ -38,17 +42,17 @@ public class FxServiceImpl implements FxService {
         }
 
         String from = quoteCurrency != null ? quoteCurrency.trim().toUpperCase() : "";
-        String to = baseCurrency != null ? baseCurrency.trim().toUpperCase() : "USD";
+        String to = (baseCurrency != null && !baseCurrency.isBlank()) ? baseCurrency.trim().toUpperCase() : DEFAULT_BASE_CURRENCY;
 
         if (from.isEmpty()) {
             return FxConversionResult.failure("Quote currency cannot be empty");
         }
 
-        // Case 1: Same currency (e.g. USD to USD) -> 1.0 rate
+        // Case 1: Same currency (e.g. USD to USD) -> 1.0 rate without API/DB lookup
         if (from.equalsIgnoreCase(to)) {
-            BigDecimal converted = amount.setScale(2, RoundingMode.HALF_UP);
-            return FxConversionResult.success(converted, BigDecimal.ONE.setScale(6, RoundingMode.HALF_UP),
-                    LocalDate.now(), LocalDateTime.now(), true);
+            BigDecimal converted = amount.setScale(AMOUNT_SCALE, RoundingMode.HALF_UP);
+            BigDecimal unitRate = BigDecimal.ONE.setScale(RATE_SCALE, RoundingMode.HALF_UP);
+            return FxConversionResult.success(converted, unitRate, LocalDate.now(), LocalDateTime.now(), true);
         }
 
         LocalDate today = LocalDate.now();
@@ -64,7 +68,7 @@ public class FxServiceImpl implements FxService {
             return FxConversionResult.success(converted, cache.getRate(), cache.getRateDate(), cache.getFetchedAt(), true);
         }
 
-        // Case 3: Cache miss for today, call Frankfurter API
+        // Case 3: Cache miss for today, call external Frankfurter API
         log.info("FX cache miss for {} -> {} on {}. Calling external Frankfurter API...", from, to, today);
         Optional<FrankfurterResponse> apiResponse = frankfurterClient.fetchLatestRate(from, to);
 
@@ -73,7 +77,7 @@ public class FxServiceImpl implements FxService {
             BigDecimal rate = response.getRates().get(to);
             if (rate != null) {
                 LocalDate rateDate = response.getDate() != null ? response.getDate() : today;
-                FxRateCache newCache = new FxRateCache(from, to, rate.setScale(6, RoundingMode.HALF_UP), rateDate);
+                FxRateCache newCache = new FxRateCache(from, to, rate.setScale(RATE_SCALE, RoundingMode.HALF_UP), rateDate);
                 newCache = fxRateCacheRepository.save(newCache);
                 log.info("Cached new FX rate for {} -> {} ({}) = {}", from, to, rateDate, rate);
 
@@ -82,7 +86,7 @@ public class FxServiceImpl implements FxService {
             }
         }
 
-        // Case 4: API failure / offline -> Fallback to latest known cached rate
+        // Case 4: API failure / offline -> Fallback to latest known historical cached rate
         log.warn("Frankfurter API failed. Attempting to fall back to latest historical cached rate for {} -> {}", from, to);
         Optional<FxRateCache> latestFallback = fxRateCacheRepository
                 .findFirstByBaseCurrencyIgnoreCaseAndTargetCurrencyIgnoreCaseOrderByRateDateDescFetchedAtDesc(from, to);
@@ -109,6 +113,6 @@ public class FxServiceImpl implements FxService {
 
     private BigDecimal computeConvertedAmount(BigDecimal amount, BigDecimal rate) {
         // Formula per assessment brief: converted_amount = quote_amount * rate(quote_currency -> base_currency)
-        return amount.multiply(rate).setScale(2, RoundingMode.HALF_UP);
+        return amount.multiply(rate).setScale(AMOUNT_SCALE, RoundingMode.HALF_UP);
     }
 }

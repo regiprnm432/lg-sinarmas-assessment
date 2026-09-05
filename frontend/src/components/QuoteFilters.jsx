@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search, Filter, RotateCcw } from 'lucide-react';
+import { Search, RotateCcw } from 'lucide-react';
 
 export default function QuoteFilters({ filters, setFilters, onReset }) {
   const currencies = ['USD', 'KRW', 'EUR', 'IDR', 'JPY', 'GBP', 'CNY', 'SGD'];

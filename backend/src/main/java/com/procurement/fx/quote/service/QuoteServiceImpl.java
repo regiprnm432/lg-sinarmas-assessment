@@ -18,7 +18,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -78,6 +82,7 @@ public class QuoteServiceImpl implements QuoteService {
             };
             quotes = quoteRepository.findAll(spec, Sort.by(Sort.Direction.DESC, "createdAt"));
         }
+
         List<QuoteResponseDto> dtos = quotes.stream()
                 .map(QuoteResponseDto::fromEntity)
                 .collect(Collectors.toList());
@@ -180,7 +185,7 @@ public class QuoteServiceImpl implements QuoteService {
                 quote.setBudgetFlag(BudgetFlag.WITHIN_BUDGET);
             }
         } else {
-            // If rate API is down and no cache exists: flag as UNKNOWN (do not crash)
+            // If rate API is down and no cache exists: flag as UNKNOWN (graceful degradation)
             quote.setConvertedAmount(null);
             quote.setRateUsed(null);
             quote.setRateFetchedAt(null);
@@ -191,13 +196,11 @@ public class QuoteServiceImpl implements QuoteService {
     }
 
     private void markCheapestQuotes(List<QuoteResponseDto> dtos) {
-        // Group by itemCode
         Map<String, List<QuoteResponseDto>> itemGroups = dtos.stream()
                 .filter(q -> q.getItemCode() != null)
                 .collect(Collectors.groupingBy(q -> q.getItemCode().toUpperCase()));
 
         for (List<QuoteResponseDto> group : itemGroups.values()) {
-            // Find minimum converted_amount in this group (ignoring null converted amounts)
             Optional<BigDecimal> minConverted = group.stream()
                     .map(QuoteResponseDto::getConvertedAmount)
                     .filter(Objects::nonNull)
