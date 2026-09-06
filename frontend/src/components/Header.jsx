@@ -1,5 +1,5 @@
 import React from 'react';
-import { Plus, RefreshCw, Layers, Database } from 'lucide-react';
+import { Plus, RefreshCw, Layers, Database, BookOpen } from 'lucide-react';
 
 export default function Header({ onNewQuote, onRecalculate, onViewRates, recalculating }) {
   return (
@@ -27,6 +27,17 @@ export default function Header({ onNewQuote, onRecalculate, onViewRates, recalcu
 
           {/* Action Buttons */}
           <div className="flex items-center gap-2.5">
+            <a
+              href="/swagger-ui/index.html"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-slate-700 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors border border-slate-200"
+              title="Open Interactive Swagger UI API Documentation"
+            >
+              <BookOpen className="w-3.5 h-3.5 text-slate-500" />
+              <span>Swagger API</span>
+            </a>
+
             <button
               onClick={onViewRates}
               className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-slate-700 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors border border-slate-200"

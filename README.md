@@ -148,7 +148,11 @@ mvn test
 
 ---
 
-## 📡 REST API Reference
+## 📡 REST API & Interactive Swagger Documentation
+
+Interactive OpenAPI 3 / Swagger documentation is available out of the box:
+- **Swagger UI**: [http://localhost:8080/swagger-ui/index.html](http://localhost:8080/swagger-ui/index.html) *(or [http://localhost:3000/swagger-ui/index.html](http://localhost:3000/swagger-ui/index.html) under Docker)*
+- **OpenAPI JSON Spec**: [http://localhost:8080/v3/api-docs](http://localhost:8080/v3/api-docs)
 
 | Method | Endpoint | Description |
 | :--- | :--- | :--- |
@@ -190,3 +194,4 @@ curl -X POST http://localhost:8080/api/quotes \
 - [x] **P1 — Docker Support**: Multi-stage Dockerfiles and `docker-compose.yml` for PostgreSQL + backend + frontend.
 - [x] **P2 — Best Value Comparison**: Automatically marks the cheapest supplier quote per item code with a **BEST VALUE** badge.
 - [x] **P2 — Automated Tests**: 14 passing unit and integration tests.
+- [x] **P2 — Interactive API Documentation (Swagger / OpenAPI 3)**: Live interactive API testing and documentation available at `/swagger-ui/index.html`.
