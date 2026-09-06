@@ -1,7 +1,7 @@
 import React from 'react';
-import { Search, RotateCcw } from 'lucide-react';
+import { Search, RotateCcw, Download, Loader2 } from 'lucide-react';
 
-export default function QuoteFilters({ filters, setFilters, onReset }) {
+export default function QuoteFilters({ filters, setFilters, onReset, onExport, exporting }) {
   const currencies = ['USD', 'KRW', 'EUR', 'IDR', 'JPY', 'GBP', 'CNY', 'SGD'];
 
   return (
@@ -61,18 +61,35 @@ export default function QuoteFilters({ filters, setFilters, onReset }) {
           </div>
         </div>
 
-        {/* Reset Button */}
-        {(filters.supplier || filters.itemCode || filters.currency || filters.budgetFlag) && (
+        {/* Action Buttons (Reset & Export) */}
+        <div className="flex items-center gap-2 self-stretch md:self-auto justify-end">
+          {(filters.supplier || filters.itemCode || filters.currency || filters.budgetFlag) && (
+            <button
+              onClick={onReset}
+              className="flex items-center gap-1.5 px-3 py-2 text-sm text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors whitespace-nowrap"
+              title="Reset filters"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              Clear
+            </button>
+          )}
+
           <button
-            onClick={onReset}
-            className="flex items-center gap-1.5 px-3 py-2 text-sm text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors whitespace-nowrap self-stretch md:self-auto justify-center"
-            title="Reset filters"
+            onClick={onExport}
+            disabled={exporting}
+            className="flex items-center gap-1.5 px-3.5 py-2 text-sm font-medium text-emerald-700 hover:text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg transition-colors shadow-2xs whitespace-nowrap disabled:opacity-50"
+            title="Export quotes comparison to Excel (.xlsx)"
           >
-            <RotateCcw className="w-3.5 h-3.5" />
-            Clear
+            {exporting ? (
+              <Loader2 className="w-4 h-4 animate-spin text-emerald-600" />
+            ) : (
+              <Download className="w-4 h-4 text-emerald-600" />
+            )}
+            <span>{exporting ? 'Exporting...' : 'Export Excel'}</span>
           </button>
-        )}
+        </div>
       </div>
     </div>
   );
 }
+

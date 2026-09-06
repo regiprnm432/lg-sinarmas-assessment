@@ -6,7 +6,7 @@ import QuoteTable from './components/QuoteTable';
 import QuoteModal from './components/QuoteModal';
 import FxRateModal from './components/FxRateModal';
 import DeleteConfirmModal from './components/DeleteConfirmModal';
-import { fetchQuotes, createQuote, updateQuote, deleteQuote, recalculateQuotes } from './services/quoteApi';
+import { fetchQuotes, createQuote, updateQuote, deleteQuote, recalculateQuotes, exportQuotesExcel } from './services/quoteApi';
 import { CheckCircle, AlertCircle } from 'lucide-react';
 
 export default function App() {
@@ -19,6 +19,7 @@ export default function App() {
   const [deleting, setDeleting] = useState(false);
   const [ratesModalOpen, setRatesModalOpen] = useState(false);
   const [recalculating, setRecalculating] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const [toast, setToast] = useState(null);
 
   const showToast = (message, type = 'success') => {
@@ -81,6 +82,18 @@ export default function App() {
     }
   };
 
+  const handleExportExcel = async () => {
+    setExporting(true);
+    try {
+      await exportQuotesExcel(filters);
+      showToast('Quotes comparison exported to Excel successfully!');
+    } catch (err) {
+      showToast(err.message || 'Failed to export Excel spreadsheet', 'error');
+    } finally {
+      setExporting(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col font-['Inter',sans-serif]">
       {/* Toast Notification */}
@@ -115,6 +128,8 @@ export default function App() {
           filters={filters}
           setFilters={setFilters}
           onReset={() => setFilters({ supplier: '', currency: '', budgetFlag: '', itemCode: '' })}
+          onExport={handleExportExcel}
+          exporting={exporting}
         />
 
         {/* Quotes Data Table */}

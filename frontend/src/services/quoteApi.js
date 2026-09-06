@@ -74,3 +74,27 @@ export async function fetchCachedRates() {
   }
   return response.json();
 }
+
+export async function exportQuotesExcel(filters = {}) {
+  const params = new URLSearchParams();
+  if (filters.supplier) params.append('supplier', filters.supplier);
+  if (filters.currency) params.append('currency', filters.currency);
+  if (filters.budgetFlag) params.append('budgetFlag', filters.budgetFlag);
+  if (filters.itemCode) params.append('itemCode', filters.itemCode);
+
+  const query = params.toString() ? `?${params.toString()}` : '';
+  const response = await fetch(`${API_BASE}/export/excel${query}`);
+  if (!response.ok) {
+    throw new Error('Failed to export quotes to Excel');
+  }
+  const blob = await response.blob();
+  const downloadUrl = window.URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = downloadUrl;
+  link.download = `quotes_comparison_${new Date().toISOString().slice(0, 10)}.xlsx`;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.URL.revokeObjectURL(downloadUrl);
+}
+
