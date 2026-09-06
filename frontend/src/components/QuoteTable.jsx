@@ -1,8 +1,36 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import StatusBadge from './StatusBadge';
-import { Award, Edit3, Trash2, Clock, DollarSign } from 'lucide-react';
+import { Award, Edit3, Trash2, Clock, DollarSign, ChevronLeft, ChevronRight } from 'lucide-react';
 
 export default function QuoteTable({ quotes, loading, onEdit, onDelete }) {
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [quotes.length, pageSize]);
+
+  const totalPages = Math.max(1, Math.ceil(quotes.length / pageSize));
+  const startIndex = (currentPage - 1) * pageSize;
+  const endIndex = Math.min(startIndex + pageSize, quotes.length);
+  const paginatedQuotes = quotes.slice(startIndex, endIndex);
+
+  const getPageNumbers = () => {
+    const pages = [];
+    if (totalPages <= 5) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
+    } else {
+      if (currentPage <= 3) {
+        pages.push(1, 2, 3, 4, '...', totalPages);
+      } else if (currentPage >= totalPages - 2) {
+        pages.push(1, '...', totalPages - 3, totalPages - 2, totalPages - 1, totalPages);
+      } else {
+        pages.push(1, '...', currentPage - 1, currentPage, currentPage + 1, '...', totalPages);
+      }
+    }
+    return pages;
+  };
+
   const formatNumber = (val, decimals = 2) => {
     if (val === null || val === undefined) return '-';
     return Number(val).toLocaleString(undefined, {
@@ -61,7 +89,7 @@ export default function QuoteTable({ quotes, loading, onEdit, onDelete }) {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 text-sm">
-            {quotes.map((quote) => {
+            {paginatedQuotes.map((quote) => {
               const variance = (quote.convertedAmount !== null && quote.budgetAmount !== null)
                 ? (quote.convertedAmount - quote.budgetAmount)
                 : null;
@@ -163,6 +191,74 @@ export default function QuoteTable({ quotes, loading, onEdit, onDelete }) {
             })}
           </tbody>
         </table>
+      </div>
+
+      {/* Pagination Toolbar */}
+      <div className="px-4 py-3 bg-slate-50/60 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-600">
+        <div className="flex items-center gap-4 flex-wrap">
+          <span>
+            Showing <span className="font-semibold text-slate-800">{startIndex + 1}</span> to{' '}
+            <span className="font-semibold text-slate-800">{endIndex}</span> of{' '}
+            <span className="font-semibold text-slate-800">{quotes.length}</span> quotes
+          </span>
+
+          <div className="flex items-center gap-1.5">
+            <span className="text-slate-500">Rows per page:</span>
+            <select
+              value={pageSize}
+              onChange={(e) => setPageSize(Number(e.target.value))}
+              className="px-2 py-1 bg-white border border-slate-200 rounded-md text-slate-700 font-medium focus:outline-none focus:ring-1 focus:ring-blue-500"
+            >
+              <option value={10}>10</option>
+              <option value={25}>25</option>
+              <option value={50}>50</option>
+              <option value={100}>100</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Page Navigation */}
+        <div className="flex items-center gap-1">
+          <button
+            onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+            disabled={currentPage === 1}
+            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors text-slate-700"
+            title="Previous Page"
+          >
+            <ChevronLeft className="w-3.5 h-3.5" />
+            <span>Prev</span>
+          </button>
+
+          <div className="flex items-center gap-1">
+            {getPageNumbers().map((p, idx) => (
+              p === '...' ? (
+                <span key={`dots-${idx}`} className="px-1 text-slate-400">...</span>
+              ) : (
+                <button
+                  key={p}
+                  onClick={() => setCurrentPage(p)}
+                  className={`w-7 h-7 rounded-lg font-medium text-xs transition-colors ${
+                    currentPage === p
+                      ? 'bg-blue-600 text-white shadow-2xs font-bold'
+                      : 'border border-slate-200 bg-white hover:bg-slate-100 text-slate-700'
+                  }`}
+                >
+                  {p}
+                </button>
+              )
+            ))}
+          </div>
+
+          <button
+            onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+            disabled={currentPage === totalPages}
+            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors text-slate-700"
+            title="Next Page"
+          >
+            <span>Next</span>
+            <ChevronRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
       </div>
     </div>
   );
