@@ -7,7 +7,7 @@ import QuoteModal from './components/QuoteModal';
 import FxRateModal from './components/FxRateModal';
 import DeleteConfirmModal from './components/DeleteConfirmModal';
 import { fetchQuotes, createQuote, updateQuote, deleteQuote, recalculateQuotes } from './services/quoteApi';
-import { CheckCircle, AlertCircle, Info } from 'lucide-react';
+import { CheckCircle, AlertCircle } from 'lucide-react';
 
 export default function App() {
   const [quotes, setQuotes] = useState([]);
@@ -107,19 +107,6 @@ export default function App() {
 
       {/* Main Container */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full flex-1">
-        {/* Architecture & Formula Reminder Info Callout */}
-        <div className="mb-6 p-4 rounded-xl bg-blue-50/60 border border-blue-100 flex items-start gap-3 text-xs text-blue-900">
-          <Info className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
-          <div className="leading-relaxed">
-            <span className="font-bold">Automated Procurement Rule: </span>
-            <code className="bg-blue-100/70 px-1 py-0.5 rounded text-blue-800 font-mono">
-              converted_amount = quote_amount × rate(quote_currency → USD)
-            </code>.
-            Quotes exceeding the budget limit are flagged as <span className="font-semibold text-rose-700">OVER_BUDGET</span>, otherwise <span className="font-semibold text-emerald-700">WITHIN_BUDGET</span>.
-            Exchange rates are fetched via Frankfurter API and cached in database table <code className="bg-blue-100/70 px-1 py-0.5 rounded text-blue-800 font-mono">fx_rate_cache</code> with automatic offline resilience.
-          </div>
-        </div>
-
         {/* KPI Summary Cards */}
         <QuoteStats quotes={quotes} />
 
