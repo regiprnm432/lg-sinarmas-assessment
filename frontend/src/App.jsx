@@ -5,6 +5,7 @@ import QuoteFilters from './components/QuoteFilters';
 import QuoteTable from './components/QuoteTable';
 import QuoteModal from './components/QuoteModal';
 import FxRateModal from './components/FxRateModal';
+import DeleteConfirmModal from './components/DeleteConfirmModal';
 import { fetchQuotes, createQuote, updateQuote, deleteQuote, recalculateQuotes } from './services/quoteApi';
 import { CheckCircle, AlertCircle, Info } from 'lucide-react';
 
@@ -14,6 +15,8 @@ export default function App() {
   const [filters, setFilters] = useState({ supplier: '', currency: '', budgetFlag: '', itemCode: '' });
   const [modalOpen, setModalOpen] = useState(false);
   const [editingQuote, setEditingQuote] = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleting, setDeleting] = useState(false);
   const [ratesModalOpen, setRatesModalOpen] = useState(false);
   const [recalculating, setRecalculating] = useState(false);
   const [toast, setToast] = useState(null);
@@ -50,14 +53,18 @@ export default function App() {
     await loadQuotes();
   };
 
-  const handleDeleteQuote = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this quote?')) return;
+  const handleConfirmDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
     try {
-      await deleteQuote(id);
-      showToast('Quote deleted successfully.');
+      await deleteQuote(deleteTarget.id);
+      showToast(`Quote from "${deleteTarget.supplierName}" deleted successfully.`);
+      setDeleteTarget(null);
       await loadQuotes();
     } catch (err) {
       showToast(err.message || 'Failed to delete quote', 'error');
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -128,7 +135,7 @@ export default function App() {
           quotes={quotes}
           loading={loading}
           onEdit={(q) => { setEditingQuote(q); setModalOpen(true); }}
-          onDelete={handleDeleteQuote}
+          onDelete={(quote) => setDeleteTarget(quote)}
         />
       </main>
 
@@ -138,6 +145,15 @@ export default function App() {
         onClose={() => setModalOpen(false)}
         onSave={handleSaveQuote}
         editingQuote={editingQuote}
+      />
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmModal
+        isOpen={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={handleConfirmDelete}
+        quote={deleteTarget}
+        deleting={deleting}
       />
 
       {/* FX Rate Cache Inspector Modal */}

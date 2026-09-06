@@ -150,7 +150,7 @@ export default function QuoteTable({ quotes, loading, onEdit, onDelete }) {
                         <Edit3 className="w-4 h-4" />
                       </button>
                       <button
-                        onClick={() => onDelete(quote.id)}
+                        onClick={() => onDelete(quote)}
                         className="p-1.5 text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
                         title="Delete quote"
                       >
