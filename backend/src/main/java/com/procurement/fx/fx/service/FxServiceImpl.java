@@ -48,7 +48,7 @@ public class FxServiceImpl implements FxService {
             return FxConversionResult.failure("Quote currency cannot be empty");
         }
 
-        // Case 1: Same currency (e.g. USD to USD) -> 1.0 rate without API/DB lookup
+        // Same currency conversion
         if (from.equalsIgnoreCase(to)) {
             BigDecimal converted = amount.setScale(AMOUNT_SCALE, RoundingMode.HALF_UP);
             BigDecimal unitRate = BigDecimal.ONE.setScale(RATE_SCALE, RoundingMode.HALF_UP);
@@ -57,7 +57,7 @@ public class FxServiceImpl implements FxService {
 
         LocalDate today = LocalDate.now();
 
-        // Case 2: Check database cache for today's rate
+        // Check database cache for today's rate
         Optional<FxRateCache> cachedToday = fxRateCacheRepository
                 .findFirstByBaseCurrencyIgnoreCaseAndTargetCurrencyIgnoreCaseAndRateDate(from, to, today);
 
@@ -68,7 +68,7 @@ public class FxServiceImpl implements FxService {
             return FxConversionResult.success(converted, cache.getRate(), cache.getRateDate(), cache.getFetchedAt(), true);
         }
 
-        // Case 3: Cache miss for today, call external Frankfurter API
+        // Cache miss, fetch rate from Frankfurter API
         log.info("FX cache miss for {} -> {} on {}. Calling external Frankfurter API...", from, to, today);
         Optional<FrankfurterResponse> apiResponse = frankfurterClient.fetchLatestRate(from, to);
 
@@ -86,7 +86,7 @@ public class FxServiceImpl implements FxService {
             }
         }
 
-        // Case 4: API failure / offline -> Fallback to latest known historical cached rate
+        // Fallback to latest historical cached rate if external API is unreachable
         log.warn("Frankfurter API failed. Attempting to fall back to latest historical cached rate for {} -> {}", from, to);
         Optional<FxRateCache> latestFallback = fxRateCacheRepository
                 .findFirstByBaseCurrencyIgnoreCaseAndTargetCurrencyIgnoreCaseOrderByRateDateDescFetchedAtDesc(from, to);
@@ -100,7 +100,7 @@ public class FxServiceImpl implements FxService {
                     fallbackCache.getFetchedAt(), true);
         }
 
-        // Case 5: Complete failure - API is down and no cache exists in DB
+        // Fallback failed and no cache available
         log.error("Unable to convert {} -> {}. External API failed and no cached rates exist in database.", from, to);
         return FxConversionResult.failure("External FX rate service unavailable and no historical cached rate found.");
     }

@@ -19,4 +19,6 @@ public interface QuoteService {
     void deleteQuote(Long id);
 
     List<QuoteResponseDto> recalculateAllQuotes();
+
+    byte[] exportQuotesToExcel(String supplier, String currency, BudgetFlag budgetFlag, String itemCode);
 }

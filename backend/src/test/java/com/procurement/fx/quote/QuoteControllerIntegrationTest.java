@@ -88,4 +88,14 @@ class QuoteControllerIntegrationTest {
                 .andExpect(jsonPath("$.status", is(404)))
                 .andExpect(jsonPath("$.message", containsString("not found")));
     }
+
+    @Test
+    @DisplayName("GET /api/quotes/export/excel should return 200 OK with valid Excel media type")
+    void testExportQuotesToExcel() throws Exception {
+        mockMvc.perform(get("/api/quotes/export/excel"))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .andExpect(header().string("Content-Disposition", containsString("attachment; filename=\"supplier_quotes_comparison.xlsx\"")));
+    }
 }
+

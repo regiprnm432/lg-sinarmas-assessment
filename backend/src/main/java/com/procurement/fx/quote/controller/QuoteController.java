@@ -10,7 +10,9 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -84,4 +86,19 @@ public class QuoteController {
     public ResponseEntity<List<FxRateCache>> getCachedRates() {
         return ResponseEntity.ok(fxService.getAllCachedRates());
     }
+
+    @GetMapping("/export/excel")
+    @Operation(summary = "Export quotes comparison to Excel (.xlsx)", description = "Export supplier quotes comparison table to Microsoft Excel format (.xlsx) with formatting and styling, optionally filtered by supplier, currency, status, or item.")
+    public ResponseEntity<byte[]> exportToExcel(
+            @Parameter(description = "Filter by supplier name (partial match)") @RequestParam(required = false) String supplier,
+            @Parameter(description = "Filter by quote currency code (e.g. KRW, EUR, IDR)") @RequestParam(required = false) String currency,
+            @Parameter(description = "Filter by budget status: WITHIN_BUDGET, OVER_BUDGET, or UNKNOWN") @RequestParam(required = false) BudgetFlag budgetFlag,
+            @Parameter(description = "Filter by item code (partial match)") @RequestParam(required = false) String itemCode) {
+        byte[] excelBytes = quoteService.exportQuotesToExcel(supplier, currency, budgetFlag, itemCode);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"supplier_quotes_comparison.xlsx\"")
+                .header(HttpHeaders.CONTENT_TYPE, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+                .body(excelBytes);
+    }
 }
+

@@ -28,7 +28,7 @@ public class DataInitializer implements CommandLineRunner {
         if (quoteRepository.count() == 0) {
             log.info("Initializing sample procurement quotes...");
 
-            // Item 1: OLED-PANEL-55 (Compare 3 suppliers with KRW, EUR, USD)
+            // OLED-PANEL-55 quote comparison (KRW, EUR, USD)
             quoteService.createQuote(new QuoteRequestDto(
                     "LG Display Paju",
                     "OLED-PANEL-55",
@@ -56,7 +56,7 @@ public class DataInitializer implements CommandLineRunner {
                     new BigDecimal("280.00")    // Budget $280 -> WITHIN_BUDGET
             ));
 
-            // Item 2: SMT-CAPACITOR-100UF (Compare 2 suppliers with EUR and IDR)
+            // SMT-CAPACITOR-100UF quote comparison (EUR and IDR)
             quoteService.createQuote(new QuoteRequestDto(
                     "Murata Manufacturing Europe",
                     "SMT-CAP-100UF",

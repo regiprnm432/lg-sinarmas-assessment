@@ -11,6 +11,7 @@ import com.procurement.fx.quote.repository.PurchaseQuoteRepository;
 import jakarta.persistence.criteria.Predicate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
@@ -32,14 +33,24 @@ public class QuoteServiceImpl implements QuoteService {
 
     private final PurchaseQuoteRepository quoteRepository;
     private final FxService fxService;
+    private final QuoteExcelExporter excelExporter;
     private final String defaultBaseCurrency;
 
+    @Autowired
     public QuoteServiceImpl(PurchaseQuoteRepository quoteRepository,
                             FxService fxService,
+                            QuoteExcelExporter excelExporter,
                             @Value("${app.base-currency:USD}") String defaultBaseCurrency) {
         this.quoteRepository = quoteRepository;
         this.fxService = fxService;
+        this.excelExporter = excelExporter != null ? excelExporter : new QuoteExcelExporter();
         this.defaultBaseCurrency = defaultBaseCurrency;
+    }
+
+    public QuoteServiceImpl(PurchaseQuoteRepository quoteRepository,
+                            FxService fxService,
+                            String defaultBaseCurrency) {
+        this(quoteRepository, fxService, new QuoteExcelExporter(), defaultBaseCurrency);
     }
 
     @Override
@@ -215,5 +226,12 @@ public class QuoteServiceImpl implements QuoteService {
                 }
             }
         }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public byte[] exportQuotesToExcel(String supplier, String currency, BudgetFlag budgetFlag, String itemCode) {
+        List<QuoteResponseDto> quotes = getAllQuotes(supplier, currency, budgetFlag, itemCode);
+        return excelExporter.exportToExcel(quotes);
     }
 }
