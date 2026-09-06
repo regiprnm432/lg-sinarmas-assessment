@@ -163,6 +163,7 @@ Interactive OpenAPI 3 / Swagger documentation is available out of the box:
 | `DELETE` | `/api/quotes/{id}` | Delete quote (`204 No Content`) |
 | `POST` | `/api/quotes/recalculate` | Re-fetch live rates and re-convert all quotes in bulk |
 | `GET` | `/api/quotes/rates` | Inspect live contents of `fx_rate_cache` table |
+| `GET` | `/api/quotes/export/excel` | Export quotes comparison to Excel spreadsheet (`.xlsx`) |
 
 ### Sample `POST /api/quotes` Request:
 ```bash
@@ -193,5 +194,6 @@ curl -X POST http://localhost:8080/api/quotes \
 - [x] **P1 — Rate Audit**: Rate used and fetch timestamp recorded and displayed per quote.
 - [x] **P1 — Docker Support**: Multi-stage Dockerfiles and `docker-compose.yml` for PostgreSQL + backend + frontend.
 - [x] **P2 — Best Value Comparison**: Automatically marks the cheapest supplier quote per item code with a **BEST VALUE** badge.
-- [x] **P2 — Automated Tests**: 14 passing unit and integration tests.
+- [x] **P2 — Automated Tests**: 17 passing unit and integration tests (zero failures, zero errors).
 - [x] **P2 — Interactive API Documentation (Swagger / OpenAPI 3)**: Live interactive API testing and documentation available at `/swagger-ui/index.html`.
+- [x] **Bonus / Enterprise — Excel Export (.xlsx)**: Formatted, audit-ready Microsoft Excel export with auto-filters, currency formatting, and status color codes via Apache POI.
